@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="google-site-verification" content="kcyznOzcXWLUYEen5ZxSg4Mx_Sk1NxWzVMHEVlLcEug">
+
+    <title>spin-off（スピンオフ）漢字 Typing</title>
+</head>
+
+<body>
+
+    <!-- タイトル画面 -->
+    <div id="title-screen">
+        <h1>
+            漢字 Typing<br>
+            <span class="gradient-text">
+                spin-off スピンオフ
+            </span>
+        </h1>
+    </div>
+
+    <!-- 会社名画面 -->
+    <div id="company-screen">
+        <div>
+            <div class="company">
+                会社＆ニックネーム
+            </div>
+
+            <div class="member-grid">
+                <div class="member">©月満社</div>
+                <div class="member">Sさん</div>
+
+                <div class="member">©The Original 0</div>
+                <div class="member">ピカごり_pikagori</div>
+
+                <div class="member">©The Original 0</div>
+                <div class="member">Dさん</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OP動画 -->
+    <div id="skip-screen">
+        <video
+            id="op-video"
+            src="op.mp4"
+            muted
+            playsinline>
+        </video>
+
+        <button id="op-start-btn">
+            START
+        </button>
+    </div>
+
+    <!-- スタート画面 -->
+    <div id="start-screen">
+        <button id="start-btn">
+            START
+        </button>
+    </div>
+
+    <!-- 名前入力画面 -->
+    <div id="name-panel">
+        <div class="panel">
+            <h2>名前を入力してくれ！</h2>
+
+            <input
+                type="text"
+                id="player-name"
+                placeholder="ここに名前を入力"
+                maxlength="12"
+            >
+
+            <button id="name-ok-btn">
+                決定
+            </button>
+        </div>
+    </div>
+
+    <!-- 端末選択画面 -->
+    <div id="device-panel">
+        <div class="device-box">
+            <h2>使用する端末を選んでくれ！</h2>
+
+            <div class="device-buttons">
+                <button type="button" data-device="pc">
+                    💻 PC
+                </button>
+
+                <button type="button" data-device="smartphone">
+                    📱 スマホ
+                </button>
+
+                <button type="button" data-device="tablet">
+                    📲 タブレット
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 性別選択画面 -->
+    <div id="gender-panel">
+        <div class="panel">
+            <h2>男 or 女？</h2>
+
+            <div class="gender-area">
+
+                <div class="gender-box" id="male-box">
+                    <div class="gender-icon">
+                        <img
+                            src="otoko.png"
+                            alt=""
+                            style="width: 76px; height: 76px;"
+                        >
+                    </div>
+
+                    <div class="gender-arrow" id="male-arrow"></div>
+                </div>
+
+                <div class="gender-box" id="female-box">
+                    <div class="gender-icon">
+                        <img
+                            src="onnna.png"
+                            alt=""
+                            style="width: 76px; height: 76px;"
+                        >
+                    </div>
+
+                    <div class="gender-arrow" id="female-arrow"></div>
+                </div>
+
+            </div>
+
+            <button id="gender-ok-btn">
+                決定!!
+            </button>
+        </div>
+    </div>
+
+    <!-- プレイヤー生成画面 -->
+    <div id="create-screen">
+
+        <div id="gear">
+            <i class="fa-solid fa-gear"></i>
+        </div>
+
+        <div id="top-bar"></div>
+
+        <img id="player-ball" src="" alt="">
+
+        <div id="scroll-icon">
+            <i class="fa-solid fa-clipboard"></i>
+        </div>
+
+        <div id="three-container"></div>
+
+        <img id="enemy" src="sakana.png" alt="">
+
+        <div id="enemy-kanji">
+            <div>魚</div>
+            <div id="enemy-romaji">??????</div>
+        </div>
+
+    </div>
+
+    <!-- スキップ文字 -->
+    <div id="skip-text">
+        スキップ（Zキー）
+    </div>
+
+    <!-- スマホ・タブレット用オンスクリーンキーボード -->
+    <div id="mobile-keyboard-container">
+
+        <div class="kb-row">
+            <button class="kb-key" data-key="q">q</button>
+            <button class="kb-key" data-key="w">w</button>
+            <button class="kb-key" data-key="e">e</button>
+            <button class="kb-key" data-key="r">r</button>
+            <button class="kb-key" data-key="t">t</button>
+            <button class="kb-key" data-key="y">y</button>
+            <button class="kb-key" data-key="u">u</button>
+            <button class="kb-key" data-key="i">i</button>
+            <button class="kb-key" data-key="o">o</button>
+            <button class="kb-key" data-key="p">p</button>
+        </div>
+
+        <div class="kb-row">
+            <button class="kb-key" data-key="a">a</button>
+            <button class="kb-key" data-key="s">s</button>
+            <button class="kb-key" data-key="d">d</button>
+            <button class="kb-key" data-key="f">f</button>
+            <button class="kb-key" data-key="g">g</button>
+            <button class="kb-key" data-key="h">h</button>
+            <button class="kb-key" data-key="j">j</button>
+            <button class="kb-key" data-key="k">k</button>
+            <button class="kb-key" data-key="l">l</button>
+        </div>
+
+        <div class="kb-row">
+            <button class="kb-key" data-key="z">z</button>
+            <button class="kb-key" data-key="x">x</button>
+            <button class="kb-key" data-key="c">c</button>
+            <button class="kb-key" data-key="v">v</button>
+            <button class="kb-key" data-key="b">b</button>
+            <button class="kb-key" data-key="n">n</button>
+            <button class="kb-key" data-key="m">m</button>
+        </div>
+
+        <div class="kb-row">
+            <button class="kb-key kb-space" data-key=" ">
+                space
+            </button>
+        </div>
+
+    </div>
+
+</body>
+</html>
