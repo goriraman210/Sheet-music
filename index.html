@@ -1,221 +1,966 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>パンチボックス譜面メーカー</title>
+  <style>
+    :root {
+  --bg-desk: #241b14;
+  --paper-kraft: #e5cfa8;
+  --paper-kraft-alt: #dcc195;
+  --ink-dark: #281d14;
+  --ink-muted: #6e5842;
+  --hole-void: #140d08;
+  --hole-rim: #fff5df;
+  --accent-amber: #d97706;
+  --border-craft: #9e7e53;
+}
 
-    <meta name="google-site-verification" content="kcyznOzcXWLUYEen5ZxSg4Mx_Sk1NxWzVMHEVlLcEug">
+* {
+  box-sizing: border-box;
+}
 
-    <title>spin-off（スピンオフ）漢字 Typing</title>
+body {
+  margin: 0;
+  padding: 24px 16px 48px;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background-color: var(--bg-desk);
+  color: var(--ink-dark);
+}
+
+header,
+main,
+footer {
+  max-width: 1120px;
+  margin: 0 auto 20px;
+}
+
+header {
+  background-color: var(--paper-kraft);
+  border: 2px solid var(--border-craft);
+  border-radius: 10px;
+  padding: 16px 20px;
+}
+
+header h1 {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+}
+
+header p {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+section {
+  background-color: var(--paper-kraft);
+  border: 2px solid var(--border-craft);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 18px;
+}
+
+section[aria-label="コントロール"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 20px;
+  align-items: flex-end;
+}
+
+section[aria-label="コントロール"] > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+select,
+input[type="number"] {
+  padding: 6px 10px;
+  border: 1px solid var(--border-craft);
+  border-radius: 6px;
+  background-color: #fbf3e4;
+  color: var(--ink-dark);
+  font-size: 0.9rem;
+}
+
+button {
+  padding: 7px 12px;
+  border: 1px solid #5c452c;
+  border-radius: 6px;
+  background-color: #f3e2c3;
+  color: var(--ink-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.12s ease, transform 0.08s ease;
+}
+
+button:hover {
+  background-color: #ebd2a4;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+#playBtn,
+#downloadMp3Btn {
+  background-color: var(--accent-amber);
+  color: #fffaf0;
+  border-color: #92400e;
+}
+
+#playBtn:hover,
+#downloadMp3Btn:hover {
+  background-color: #b45309;
+}
+
+section[aria-label="ステータス"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 20px;
+}
+
+section[aria-label="ステータス"] p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+#songTitleDisplay {
+  font-weight: 700;
+}
+
+#statusMessage {
+  color: #92400e;
+  font-weight: 600;
+}
+
+#punchGridWrapper {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.punch-grid {
+  display: grid;
+  min-width: max-content;
+  background-color: var(--paper-kraft-alt);
+  border: 1px solid var(--border-craft);
+}
+
+.grid-header-note,
+.grid-header-step {
+  padding: 6px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  background-color: #d3b282;
+  border-right: 1px solid var(--border-craft);
+  border-bottom: 1px solid var(--border-craft);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.grid-header-note {
+  left: 0;
+  z-index: 3;
+  text-align: left;
+}
+
+.note-label {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: var(--paper-kraft);
+  border-right: 1px solid var(--border-craft);
+  border-bottom: 1px solid rgba(158, 126, 83, 0.45);
+}
+
+.hole-cell {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid rgba(158, 126, 83, 0.35);
+  border-bottom: 1px solid rgba(158, 126, 83, 0.45);
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+
+.hole-cell::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #fbf3e4;
+  border: 1px solid #9e7e53;
+  transition: background-color 0.08s ease, border-color 0.08s ease, transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.hole-cell:hover::before {
+  border-color: var(--ink-dark);
+  transform: scale(1.06);
+}
+
+.hole-cell.is-punched::before {
+  background-color: var(--hole-void);
+  border-color: var(--hole-rim);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.95),
+    0 0 0 1.5px var(--ink-dark);
+  transform: scale(0.95);
+}
+
+.hole-cell.is-playing {
+  background-color: rgba(217, 119, 6, 0.25);
+}
+
+.grid-header-step.is-playing {
+  background-color: var(--accent-amber);
+  color: #fffaf0;
+}
+
+label[for="asciiOutput"] {
+  display: block;
+  margin-bottom: 8px;
+}
+
+#asciiOutput {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-craft);
+  border-radius: 6px;
+  background-color: #fbf3e4;
+  color: var(--ink-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+footer {
+  background-color: transparent;
+  border: none;
+  padding: 0 4px;
+  color: #d6c29f;
+  font-size: 0.8rem;
+  text-align: center;
+}
+  </style>
 </head>
-
 <body>
+  <header>
+    <h1>パンチボックス譜面メーカー</h1>
+    <p>ドレミ♯♭表記のパンチテープ式譜面エディタ</p>
+  </header>
 
-    <!-- タイトル画面 -->
-    <div id="title-screen">
-        <h1>
-            漢字 Typing<br>
-            <span class="gradient-text">
-                spin-off スピンオフ
-            </span>
-        </h1>
-    </div>
+  <main>
+    <section aria-label="コントロール">
+      <div>
+        <label for="presetSelect">プリセット</label>
+        <select id="presetSelect">
+          <option value="north_night">北の夜の小さなオルゴール（オリジナル）</option>
+          <option value="twinkle">きらきら星</option>
+          <option value="scale_up">ドレミ上昇</option>
+        </select>
+      </div>
 
-    <!-- 会社名画面 -->
-    <div id="company-screen">
-        <div>
-            <div class="company">
-                会社＆ニックネーム
-            </div>
+      <div>
+        <label for="bpmInput">BPM</label>
+        <input id="bpmInput" type="number" min="40" max="420" value="120" />
+      </div>
 
-            <div class="member-grid">
-                <div class="member">©月満社</div>
-                <div class="member">Sさん</div>
+      <div>
+        <label for="stepsSelect">ステップ数</label>
+        <select id="stepsSelect">
+          <option value="16">16</option>
+          <option value="32" selected>32</option>
+          <option value="64">64</option>
+        </select>
+      </div>
 
-                <div class="member">©The Original 0</div>
-                <div class="member">ピカごり_pikagori</div>
+      <div>
+        <button id="playBtn" type="button">再生</button>
+        <button id="stopBtn" type="button">停止</button>
+        <button id="fillAllBtn" type="button">穴を全部詰める</button>
+        <button id="randomBtn" type="button">ランダム穴あけ</button>
+        <button id="clearBtn" type="button">クリア</button>
+        <button id="copyAsciiBtn" type="button">テキストコピー</button>
+        <button id="downloadMp3Btn" type="button">MP3ダウンロード</button>
+      </div>
+    </section>
 
-                <div class="member">©The Original 0</div>
-                <div class="member">Dさん</div>
-            </div>
-        </div>
-    </div>
+    <section aria-label="ステータス">
+      <p id="songTitleDisplay">北の夜の小さなオルゴール（オリジナル）</p>
+      <p id="holeCountDisplay">穴の数: 0</p>
+      <p id="statusMessage"></p>
+    </section>
 
-    <!-- OP動画 -->
-    <div id="skip-screen">
-        <video
-            id="op-video"
-            src="op.mp4"
-            muted
-            playsinline>
-        </video>
+    <section aria-label="パンチ譜面グリッド">
+      <div id="punchGridWrapper"></div>
+    </section>
 
-        <button id="op-start-btn">
-            START
-        </button>
-    </div>
+    <section aria-label="テキスト出力">
+      <label for="asciiOutput">譜面テキスト</label>
+      <textarea id="asciiOutput" rows="10" cols="60" readonly></textarea>
+    </section>
+  </main>
+  <script>
+    (() => {
+  const SOLFEGE_BASE = [
+    { step: 0, sharp: "ド", flat: "ド" },
+    { step: 1, sharp: "ド♯", flat: "レ♭" },
+    { step: 2, sharp: "レ", flat: "レ" },
+    { step: 3, sharp: "レ♯", flat: "ミ♭" },
+    { step: 4, sharp: "ミ", flat: "ミ" },
+    { step: 5, sharp: "ファ", flat: "ファ" },
+    { step: 6, sharp: "ファ♯", flat: "ソ♭" },
+    { step: 7, sharp: "ソ", flat: "ソ" },
+    { step: 8, sharp: "ソ♯", flat: "ラ♭" },
+    { step: 9, sharp: "ラ", flat: "ラ" },
+    { step: 10, sharp: "ラ♯", flat: "シ♭" },
+    { step: 11, sharp: "シ", flat: "シ" },
+  ];
 
-    <!-- スタート画面 -->
-    <div id="start-screen">
-        <button id="start-btn">
-            START
-        </button>
-    </div>
+  function getRegisterPrefix(midi) {
+    if (midi < 60) return "低";
+    if (midi < 72) return "中";
+    return "高";
+  }
 
-    <!-- 名前入力画面 -->
-    <div id="name-panel">
-        <div class="panel">
-            <h2>名前を入力してくれ！</h2>
+  function formatSolfegeLabel(midi) {
+    const info = SOLFEGE_BASE[((midi % 12) + 12) % 12];
+    const reg = getRegisterPrefix(midi);
+    if (info.sharp === info.flat) {
+      return `${reg}${info.sharp}`;
+    }
+    return `${reg}${info.sharp}／${reg}${info.flat}`;
+  }
 
-            <input
-                type="text"
-                id="player-name"
-                placeholder="ここに名前を入力"
-                maxlength="12"
-            >
+  // C4 (60) から G6 (91) までの32音（上から高い順に表示）
+  const NOTES_TOP_TO_BOTTOM = (() => {
+    const list = [];
+    for (let midi = 91; midi >= 60; midi--) {
+      const freq = 440 * Math.pow(2, (midi - 69) / 12);
+      list.push({
+        midi,
+        freq,
+        label: formatSolfegeLabel(midi),
+      });
+    }
+    return list;
+  })();
 
-            <button id="name-ok-btn">
-                決定
-            </button>
-        </div>
-    </div>
+  const NUM_NOTES = NOTES_TOP_TO_BOTTOM.length;
 
-    <!-- 端末選択画面 -->
-    <div id="device-panel">
-        <div class="device-box">
-            <h2>使用する端末を選んでくれ！</h2>
+  const state = {
+    steps: 32,
+    bpm: 120,
+    holes: [],
+    isPlaying: false,
+    playTimer: null,
+    currentStep: -1,
+    isDragging: false,
+    dragPunchValue: true,
+    songTitle: "北の夜の小さなオルゴール（オリジナル）",
+    audioCtx: null,
+  };
 
-            <div class="device-buttons">
-                <button type="button" data-device="pc">
-                    💻 PC
-                </button>
+  const els = {
+    presetSelect: document.getElementById("presetSelect"),
+    bpmInput: document.getElementById("bpmInput"),
+    stepsSelect: document.getElementById("stepsSelect"),
+    playBtn: document.getElementById("playBtn"),
+    stopBtn: document.getElementById("stopBtn"),
+    fillAllBtn: document.getElementById("fillAllBtn"),
+    randomBtn: document.getElementById("randomBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    copyAsciiBtn: document.getElementById("copyAsciiBtn"),
+    downloadMp3Btn: document.getElementById("downloadMp3Btn"),
+    songTitleDisplay: document.getElementById("songTitleDisplay"),
+    holeCountDisplay: document.getElementById("holeCountDisplay"),
+    statusMessage: document.getElementById("statusMessage"),
+    punchGridWrapper: document.getElementById("punchGridWrapper"),
+    asciiOutput: document.getElementById("asciiOutput"),
+  };
 
-                <button type="button" data-device="smartphone">
-                    📱 スマホ
-                </button>
+  function setStatus(msg) {
+    if (els.statusMessage) {
+      els.statusMessage.textContent = msg;
+    }
+  }
 
-                <button type="button" data-device="tablet">
-                    📲 タブレット
-                </button>
-            </div>
-        </div>
-    </div>
+  function createEmptyHoles(steps) {
+    return Array.from({ length: NUM_NOTES }, () => Array(steps).fill(false));
+  }
 
-    <!-- 性別選択画面 -->
-    <div id="gender-panel">
-        <div class="panel">
-            <h2>男 or 女？</h2>
+  function findRowByMidi(midi) {
+    return NOTES_TOP_TO_BOTTOM.findIndex((n) => n.midi === midi);
+  }
 
-            <div class="gender-area">
+  function stampEvents(events) {
+    events.forEach((ev) => {
+      const midis = Array.isArray(ev.midis) ? ev.midis : [ev.midi];
+      midis.forEach((m) => {
+        const row = findRowByMidi(m);
+        if (row !== -1 && ev.step >= 0 && ev.step < state.steps) {
+          state.holes[row][ev.step] = true;
+        }
+      });
+    });
+  }
 
-                <div class="gender-box" id="male-box">
-                    <div class="gender-icon">
-                        <img
-                            src="otoko.png"
-                            alt=""
-                            style="width: 76px; height: 76px;"
-                        >
-                    </div>
+  function buildNorthNightEvents() {
+    return [
+      { step: 0, midis: [60, 72] },
+      { step: 1, midi: 76 },
+      { step: 2, midi: 79 },
+      { step: 3, midi: 83 },
+      { step: 4, midis: [67, 84] },
+      { step: 5, midi: 83 },
+      { step: 6, midi: 79 },
+      { step: 7, midi: 76 },
+      { step: 8, midis: [69, 77] },
+      { step: 9, midi: 81 },
+      { step: 10, midi: 84 },
+      { step: 11, midi: 81 },
+      { step: 12, midis: [64, 79] },
+      { step: 13, midi: 76 },
+      { step: 14, midi: 74 },
+      { step: 15, midi: 72 },
+      { step: 16, midis: [62, 74] },
+      { step: 17, midi: 78 }, // 中ファ♯／中ソ♭
+      { step: 18, midi: 81 },
+      { step: 19, midi: 86 },
+      { step: 20, midis: [67, 83] },
+      { step: 21, midi: 82 }, // 中シ♭／中ラ♯
+      { step: 22, midi: 79 },
+      { step: 23, midi: 74 },
+      { step: 24, midis: [65, 77] },
+      { step: 25, midi: 79 },
+      { step: 26, midi: 81 },
+      { step: 27, midi: 79 },
+      { step: 28, midis: [60, 76] },
+      { step: 29, midi: 79 },
+      { step: 30, midi: 84 },
+      { step: 31, midis: [60, 72, 76, 79, 84] },
+    ];
+  }
 
-                    <div class="gender-arrow" id="male-arrow"></div>
-                </div>
+  function applyPreset(presetKey) {
+    stopPlayback();
+    state.holes = createEmptyHoles(state.steps);
 
-                <div class="gender-box" id="female-box">
-                    <div class="gender-icon">
-                        <img
-                            src="onnna.png"
-                            alt=""
-                            style="width: 76px; height: 76px;"
-                        >
-                    </div>
+    if (presetKey === "north_night") {
+      state.songTitle = "北の夜の小さなオルゴール（オリジナル）";
+      stampEvents(buildNorthNightEvents());
+      for (let st = 32; st < state.steps; st++) {
+        const pattern = [
+          { step: st, midis: [60, 72] },
+          { step: st, midi: 76 },
+          { step: st, midi: 79 },
+          { step: st, midi: 76 },
+          { step: st, midis: [67, 79] },
+          { step: st, midi: 76 },
+          { step: st, midi: 74 },
+          { step: st, midis: [60, 72, 76, 79] },
+        ];
+        stampEvents([pattern[(st - 32) % pattern.length]]);
+      }
+    } else if (presetKey === "twinkle") {
+      state.songTitle = "きらきら星";
+      const melody = [60, 60, 67, 67, 69, 69, 67, 67, 65, 65, 64, 64, 62, 62, 60, 60];
+      for (let st = 0; st < state.steps; st++) {
+        stampEvents([{ step: st, midi: melody[st % melody.length] }]);
+      }
+    } else if (presetKey === "scale_up") {
+      state.songTitle = "ドレミ上昇";
+      const scale = [60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77, 79, 81, 83, 84, 86];
+      for (let st = 0; st < state.steps; st++) {
+        stampEvents([{ step: st, midi: scale[st % scale.length] }]);
+      }
+    }
 
-                    <div class="gender-arrow" id="female-arrow"></div>
-                </div>
+    if (els.songTitleDisplay) {
+      els.songTitleDisplay.textContent = state.songTitle;
+    }
+    renderGrid();
+    updateHoleCountAndAscii();
+    setStatus(`「${state.songTitle}」を読み込みました`);
+  }
 
-            </div>
+  function ensureAudioContext() {
+    if (!state.audioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      state.audioCtx = new AudioCtx();
+    }
+    if (state.audioCtx.state === "suspended") {
+      state.audioCtx.resume();
+    }
+    return state.audioCtx;
+  }
 
-            <button id="gender-ok-btn">
-                決定!!
-            </button>
-        </div>
-    </div>
+  function scheduleMusicBoxTone(ctx, freq, startTime, duration = 0.55, volume = 0.14) {
+    const oscMain = ctx.createOscillator();
+    const oscOver = ctx.createOscillator();
+    const gain = ctx.createGain();
 
-    <!-- プレイヤー生成画面 -->
-    <div id="create-screen">
+    oscMain.type = "sine";
+    oscMain.frequency.setValueAtTime(freq, startTime);
 
-        <div id="gear">
-            <i class="fa-solid fa-gear"></i>
-        </div>
+    oscOver.type = "triangle";
+    oscOver.frequency.setValueAtTime(freq * 2, startTime);
 
-        <div id="top-bar"></div>
+    const overGain = ctx.createGain();
+    overGain.gain.setValueAtTime(0.22, startTime);
+    overGain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.12);
 
-        <img id="player-ball" src="" alt="">
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.linearRampToValueAtTime(volume, startTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
-        <div id="scroll-icon">
-            <i class="fa-solid fa-clipboard"></i>
-        </div>
+    oscMain.connect(gain);
+    oscOver.connect(overGain);
+    overGain.connect(gain);
+    gain.connect(ctx.destination);
 
-        <div id="three-container"></div>
+    oscMain.start(startTime);
+    oscOver.start(startTime);
+    oscMain.stop(startTime + duration + 0.02);
+    oscOver.stop(startTime + duration + 0.02);
+  }
 
-        <img id="enemy" src="sakana.png" alt="">
+  function playPreviewNote(freq) {
+    const ctx = ensureAudioContext();
+    scheduleMusicBoxTone(ctx, freq, ctx.currentTime, 0.45, 0.14);
+  }
 
-        <div id="enemy-kanji">
-            <div>魚</div>
-            <div id="enemy-romaji">??????</div>
-        </div>
+  function renderGrid() {
+    if (!els.punchGridWrapper) return;
+    els.punchGridWrapper.innerHTML = "";
 
-    </div>
+    const grid = document.createElement("div");
+    grid.className = "punch-grid";
+    grid.style.gridTemplateColumns = `118px repeat(${state.steps}, 28px)`;
 
-    <!-- スキップ文字 -->
-    <div id="skip-text">
-        スキップ（Zキー）
-    </div>
+    const corner = document.createElement("div");
+    corner.className = "grid-header-note";
+    corner.textContent = "音階（ドレミ）";
+    grid.appendChild(corner);
 
-    <!-- スマホ・タブレット用オンスクリーンキーボード -->
-    <div id="mobile-keyboard-container">
+    for (let st = 0; st < state.steps; st++) {
+      const stepHdr = document.createElement("div");
+      stepHdr.className = "grid-header-step";
+      stepHdr.dataset.stepHeader = String(st);
+      stepHdr.textContent = String(st + 1);
+      grid.appendChild(stepHdr);
+    }
 
-        <div class="kb-row">
-            <button class="kb-key" data-key="q">q</button>
-            <button class="kb-key" data-key="w">w</button>
-            <button class="kb-key" data-key="e">e</button>
-            <button class="kb-key" data-key="r">r</button>
-            <button class="kb-key" data-key="t">t</button>
-            <button class="kb-key" data-key="y">y</button>
-            <button class="kb-key" data-key="u">u</button>
-            <button class="kb-key" data-key="i">i</button>
-            <button class="kb-key" data-key="o">o</button>
-            <button class="kb-key" data-key="p">p</button>
-        </div>
+    for (let r = 0; r < NUM_NOTES; r++) {
+      const noteInfo = NOTES_TOP_TO_BOTTOM[r];
+      const labelCell = document.createElement("div");
+      labelCell.className = "note-label";
+      labelCell.textContent = noteInfo.label;
+      grid.appendChild(labelCell);
 
-        <div class="kb-row">
-            <button class="kb-key" data-key="a">a</button>
-            <button class="kb-key" data-key="s">s</button>
-            <button class="kb-key" data-key="d">d</button>
-            <button class="kb-key" data-key="f">f</button>
-            <button class="kb-key" data-key="g">g</button>
-            <button class="kb-key" data-key="h">h</button>
-            <button class="kb-key" data-key="j">j</button>
-            <button class="kb-key" data-key="k">k</button>
-            <button class="kb-key" data-key="l">l</button>
-        </div>
+      for (let st = 0; st < state.steps; st++) {
+        const punched = Boolean(state.holes[r][st]);
+        const cell = document.createElement("div");
+        cell.className = `hole-cell${punched ? " is-punched" : ""}`;
+        cell.dataset.row = String(r);
+        cell.dataset.step = String(st);
+        cell.title = `${noteInfo.label} / ステップ ${st + 1}`;
 
-        <div class="kb-row">
-            <button class="kb-key" data-key="z">z</button>
-            <button class="kb-key" data-key="x">x</button>
-            <button class="kb-key" data-key="c">c</button>
-            <button class="kb-key" data-key="v">v</button>
-            <button class="kb-key" data-key="b">b</button>
-            <button class="kb-key" data-key="n">n</button>
-            <button class="kb-key" data-key="m">m</button>
-        </div>
+        cell.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          state.isDragging = true;
+          const nextVal = !state.holes[r][st];
+          state.dragPunchValue = nextVal;
+          setHole(r, st, nextVal, nextVal);
+        });
 
-        <div class="kb-row">
-            <button class="kb-key kb-space" data-key=" ">
-                space
-            </button>
-        </div>
+        cell.addEventListener("pointerenter", () => {
+          if (!state.isDragging) return;
+          setHole(r, st, state.dragPunchValue, state.dragPunchValue);
+        });
 
-    </div>
+        grid.appendChild(cell);
+      }
+    }
+
+    els.punchGridWrapper.appendChild(grid);
+    highlightPlayingStep(state.currentStep);
+  }
+
+  function setHole(rowIdx, stepIdx, punched, withSound = false) {
+    if (!state.holes[rowIdx] || stepIdx < 0 || stepIdx >= state.steps) return;
+    const val = Boolean(punched);
+    state.holes[rowIdx][stepIdx] = val;
+
+    const cell = els.punchGridWrapper?.querySelector(
+      `.hole-cell[data-row="${rowIdx}"][data-step="${stepIdx}"]`
+    );
+    if (cell) {
+      cell.classList.toggle("is-punched", val);
+    }
+
+    if (withSound && val) {
+      playPreviewNote(NOTES_TOP_TO_BOTTOM[rowIdx].freq);
+    }
+
+    updateHoleCountAndAscii();
+  }
+
+  function highlightPlayingStep(stepIdx) {
+    if (!els.punchGridWrapper) return;
+    els.punchGridWrapper
+      .querySelectorAll(".is-playing")
+      .forEach((el) => el.classList.remove("is-playing"));
+
+    if (stepIdx < 0 || stepIdx >= state.steps) return;
+
+    const hdr = els.punchGridWrapper.querySelector(`[data-step-header="${stepIdx}"]`);
+    if (hdr) hdr.classList.add("is-playing");
+
+    els.punchGridWrapper
+      .querySelectorAll(`.hole-cell[data-step="${stepIdx}"]`)
+      .forEach((cell) => cell.classList.add("is-playing"));
+  }
+
+  function getStepIntervalMs() {
+    const bpm = Math.max(40, Math.min(420, Number(state.bpm) || 120));
+    // 1拍を8分音符相当としてステップ間隔を算出
+    return (60 / bpm / 2) * 1000;
+  }
+
+  function playStep(stepIdx) {
+    highlightPlayingStep(stepIdx);
+    const ctx = ensureAudioContext();
+    const now = ctx.currentTime;
+    const stepSec = Math.max(0.08, getStepIntervalMs() / 1000);
+
+    for (let r = 0; r < NUM_NOTES; r++) {
+      if (state.holes[r][stepIdx]) {
+        scheduleMusicBoxTone(ctx, NOTES_TOP_TO_BOTTOM[r].freq, now, Math.max(0.35, stepSec * 2.2), 0.12);
+      }
+    }
+  }
+
+  function startPlayback() {
+    stopPlayback();
+    state.isPlaying = true;
+    state.currentStep = 0;
+    if (els.playBtn) els.playBtn.textContent = "再生中...";
+    setStatus(`再生中（BPM ${state.bpm}）`);
+
+    playStep(state.currentStep);
+    state.playTimer = window.setInterval(() => {
+      state.currentStep = (state.currentStep + 1) % state.steps;
+      playStep(state.currentStep);
+    }, getStepIntervalMs());
+  }
+
+  function stopPlayback() {
+    state.isPlaying = false;
+    if (state.playTimer !== null) {
+      clearInterval(state.playTimer);
+      state.playTimer = null;
+    }
+    state.currentStep = -1;
+    highlightPlayingStep(-1);
+    if (els.playBtn) els.playBtn.textContent = "再生";
+  }
+
+  function countPunchedHoles() {
+    let total = 0;
+    for (let r = 0; r < NUM_NOTES; r++) {
+      for (let st = 0; st < state.steps; st++) {
+        if (state.holes[r][st]) total++;
+      }
+    }
+    return total;
+  }
+
+  function buildAsciiPattern() {
+    const lines = [`曲名: ${state.songTitle} / BPM: ${state.bpm} / ステップ: ${state.steps}`];
+    for (let r = 0; r < NUM_NOTES; r++) {
+      const label = NOTES_TOP_TO_BOTTOM[r].label.padEnd(10, " ");
+      const rowChars = state.holes[r].map((h) => (h ? "●" : "・")).join(" ");
+      lines.push(`${label} | ${rowChars}`);
+    }
+    return lines.join("\n");
+  }
+
+  function updateHoleCountAndAscii() {
+    const total = countPunchedHoles();
+    if (els.holeCountDisplay) {
+      els.holeCountDisplay.textContent = `穴の数: ${total}`;
+    }
+    if (els.asciiOutput) {
+      els.asciiOutput.value = buildAsciiPattern();
+    }
+  }
+
+  function encodeWavBlob(audioBuffer) {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const length = audioBuffer.length;
+    const bytesPerSample = 2;
+    const blockAlign = numChannels * bytesPerSample;
+    const dataSize = length * blockAlign;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    const writeString = (offset, str) => {
+      for (let i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    };
+
+    writeString(0, "RIFF");
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);
+    writeString(36, "data");
+    view.setUint32(40, dataSize, true);
+
+    let offset = 44;
+    const channels = [];
+    for (let ch = 0; ch < numChannels; ch++) {
+      channels.push(audioBuffer.getChannelData(ch));
+    }
+
+    for (let i = 0; i < length; i++) {
+      for (let ch = 0; ch < numChannels; ch++) {
+        const sample = Math.max(-1, Math.min(1, channels[ch][i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+        offset += 2;
+      }
+    }
+
+    return new Blob([buffer], { type: "audio/wav" });
+  }
+
+  function encodeMp3IfAvailable(audioBuffer) {
+    if (typeof window.lamejs === "undefined" || !window.lamejs.Mp3Encoder) {
+      return null;
+    }
+    const sampleRate = audioBuffer.sampleRate;
+    const encoder = new window.lamejs.Mp3Encoder(1, sampleRate, 128);
+    const channelData = audioBuffer.getChannelData(0);
+    const pcm16 = new Int16Array(channelData.length);
+
+    for (let i = 0; i < channelData.length; i++) {
+      const s = Math.max(-1, Math.min(1, channelData[i]));
+      pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+
+    const mp3Data = [];
+    const blockSize = 1152;
+    for (let i = 0; i < pcm16.length; i += blockSize) {
+      const chunk = pcm16.subarray(i, i + blockSize);
+      const encoded = encoder.encodeBuffer(chunk);
+      if (encoded.length > 0) {
+        mp3Data.push(new Uint8Array(encoded));
+      }
+    }
+    const flushed = encoder.flush();
+    if (flushed.length > 0) {
+      mp3Data.push(new Uint8Array(flushed));
+    }
+    return new Blob(mp3Data, { type: "audio/mpeg" });
+  }
+
+  async function downloadAudioFile() {
+    const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+    if (!OfflineCtx) {
+      setStatus("このブラウザは音声書き出しに対応していません");
+      return;
+    }
+
+    if (els.downloadMp3Btn) {
+      els.downloadMp3Btn.disabled = true;
+      els.downloadMp3Btn.textContent = "生成中...";
+    }
+    setStatus("音声ファイルをレンダリング中...");
+
+    try {
+      const stepSec = getStepIntervalMs() / 1000;
+      const totalDuration = state.steps * stepSec + 1.0;
+      const sampleRate = 44100;
+      const offlineCtx = new OfflineCtx(1, Math.ceil(sampleRate * totalDuration), sampleRate);
+
+      for (let st = 0; st < state.steps; st++) {
+        const startTime = st * stepSec;
+        for (let r = 0; r < NUM_NOTES; r++) {
+          if (state.holes[r][st]) {
+            scheduleMusicBoxTone(
+              offlineCtx,
+              NOTES_TOP_TO_BOTTOM[r].freq,
+              startTime,
+              Math.max(0.35, stepSec * 2.2),
+              0.14
+            );
+          }
+        }
+      }
+
+      const renderedBuffer = await offlineCtx.startRendering();
+      const mp3Blob = encodeMp3IfAvailable(renderedBuffer);
+      const blob = mp3Blob || encodeWavBlob(renderedBuffer);
+      const ext = mp3Blob ? "mp3" : "wav";
+      const safeName = (state.songTitle || "punchbox_music").replace(/[\\/:*?"<>|]/g, "_");
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${safeName}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      setStatus(
+        mp3Blob
+          ? `${safeName}.mp3 をダウンロードしました`
+          : `lamejs未読込のため ${safeName}.wav を書き出しました`
+      );
+    } catch (err) {
+      console.error(err);
+      setStatus("音声ファイルの生成に失敗しました");
+    } finally {
+      if (els.downloadMp3Btn) {
+        els.downloadMp3Btn.disabled = false;
+        els.downloadMp3Btn.textContent = "MP3ダウンロード";
+      }
+    }
+  }
+
+  function bindEvents() {
+    window.addEventListener("pointerup", () => {
+      state.isDragging = false;
+    });
+
+    els.presetSelect?.addEventListener("change", (e) => {
+      applyPreset(e.target.value);
+    });
+
+    els.bpmInput?.addEventListener("change", (e) => {
+      const val = Math.max(40, Math.min(420, Number(e.target.value) || 120));
+      state.bpm = val;
+      e.target.value = String(val);
+      updateHoleCountAndAscii();
+      if (state.isPlaying) {
+        startPlayback();
+      }
+    });
+
+    els.stepsSelect?.addEventListener("change", (e) => {
+      const nextSteps = Number(e.target.value) || 32;
+      state.steps = nextSteps;
+      applyPreset(els.presetSelect?.value || "north_night");
+    });
+
+    els.playBtn?.addEventListener("click", () => {
+      if (state.isPlaying) {
+        stopPlayback();
+        setStatus("停止しました");
+      } else {
+        startPlayback();
+      }
+    });
+
+    els.stopBtn?.addEventListener("click", () => {
+      stopPlayback();
+      setStatus("停止しました");
+    });
+
+    els.fillAllBtn?.addEventListener("click", () => {
+      stopPlayback();
+      state.holes = Array.from({ length: NUM_NOTES }, () => Array(state.steps).fill(true));
+      renderGrid();
+      updateHoleCountAndAscii();
+      setStatus("すべての穴を詰めました");
+    });
+
+    els.randomBtn?.addEventListener("click", () => {
+      stopPlayback();
+      state.holes = Array.from({ length: NUM_NOTES }, () =>
+        Array.from({ length: state.steps }, () => Math.random() < 0.14)
+      );
+      renderGrid();
+      updateHoleCountAndAscii();
+      setStatus("ランダムに穴を開けました");
+    });
+
+    els.clearBtn?.addEventListener("click", () => {
+      stopPlayback();
+      state.holes = createEmptyHoles(state.steps);
+      renderGrid();
+      updateHoleCountAndAscii();
+      setStatus("穴をすべてクリアしました");
+    });
+
+    els.copyAsciiBtn?.addEventListener("click", async () => {
+      const text = buildAsciiPattern();
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("譜面テキストをクリップボードにコピーしました");
+      } catch {
+        if (els.asciiOutput) {
+          els.asciiOutput.select();
+          document.execCommand("copy");
+        }
+        setStatus("譜面テキストを選択／コピーしました");
+      }
+    });
+
+    els.downloadMp3Btn?.addEventListener("click", () => {
+      downloadAudioFile();
+    });
+  }
+
+  function init() {
+    if (els.bpmInput) {
+      state.bpm = Number(els.bpmInput.value) || 120;
+    }
+    if (els.stepsSelect) {
+      state.steps = Number(els.stepsSelect.value) || 32;
+    }
+    bindEvents();
+    applyPreset(els.presetSelect?.value || "north_night");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+  </script>
 
 </body>
 </html>
